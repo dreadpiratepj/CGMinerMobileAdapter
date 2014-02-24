@@ -45,12 +45,20 @@ while 1:
 			 level=logging.DEBUG
 	)
 	
-# Edit these values for individual Miner Instance
-# --- Begin Miner Configuration ---
-	emailAddy = 'yourEmail@email.com'
-	applicationKey = 'ApplicationKey'
-	machineName = 'Miner Machine Name'
-# --- End Miner Configuration  ---
+    settingsPath="/root/settings.conf"
+    if (not os.path.isfile(settingsPath)):
+            print "File settings.conf not found"
+            os._exit(-1)
+
+    f = open(settingsPath)
+    settingsContent = open(settingsPath).readlines()
+
+    emailAddy = settingsContent[0].rstrip('\n')
+    applicationKey = settingsContent[1].rstrip('\n')
+    machineName = settingsContent[2].rstrip('\n')
+    apiKey = 'yIiEyL50VuMVdp'
+
+    f.close()
 
 	apiKey = 'yIiEyL50VuMVdp'	
 	reqURL = 'https://mobileminer.azurewebsites.net/api/MiningStatisticsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey
