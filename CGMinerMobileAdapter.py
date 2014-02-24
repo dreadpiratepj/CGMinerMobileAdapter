@@ -24,13 +24,13 @@ import urllib
 import urllib2
 
 def start_mining():
-	print "STARTUJE"
+        os.system("mine start")
 
 def stop_mining():
-	print "STOPUJE"
+        os.system("mine stop")
 
 def restart_mining():
-	print "RESTARTUJE"
+        os.system("mine restart")
 
 actions = {
 	"STOP" : stop_mining,
