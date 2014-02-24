@@ -1,6 +1,15 @@
-BFGMobileAdapter
+CGMinerMobileAdapter
 =========
 
+Updated version of Hazado's BFGMobileAdapter fork.
+
+Changes:
+
+- remote commands support (START/STOP/RESTART)
+- removed script freezes
+
+=========
+ORIGINAL README:
 
 UPDATE - apparently this script also works with CGMiner due to their shared implementation of RPC. I may have to rename this thing. 
 
