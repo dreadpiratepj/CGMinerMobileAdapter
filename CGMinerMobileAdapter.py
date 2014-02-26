@@ -62,8 +62,6 @@ while 1:
 	apiKey = 'yhErhKxFMCmEkf'	
 	reqURL = 'https://mobileminer.azurewebsites.net/api/MiningStatisticsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey
 	
-	print reqURL
-
 	parser = argparse.ArgumentParser()
 	parser.add_argument("command", default="devs", nargs='?')
 	parser.add_argument("parameter", default="", nargs='?')
