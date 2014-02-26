@@ -45,7 +45,7 @@ while 1:
 			 level=logging.DEBUG
 	)
 	
-	settingsPath="settings.conf"
+	settingsPath=os.path.dirname(os.path.abspath(__file__))+"/settings.conf"
 	if (not os.path.isfile(settingsPath)):
 		print "File settings.conf not found"
 		os._exit(-1)

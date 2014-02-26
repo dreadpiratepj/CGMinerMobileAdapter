@@ -25,7 +25,6 @@ echo $appKey >> $INSTALLATION_FOLDER$SETTINGS_FILE
 echo $machineName >> $INSTALLATION_FOLDER$SETTINGS_FILE
 
 screen -X -S MobileMiner quit
-cd $INSTALLATION_FOLDER
 $SCREEN_COMMAND
 
 if ! grep -q "$SCREEN_COMMAND" "/etc/rc.local"; then
