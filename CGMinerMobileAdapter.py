@@ -45,23 +45,25 @@ while 1:
 			 level=logging.DEBUG
 	)
 	
-    settingsPath="/root/settings.conf"
-    if (not os.path.isfile(settingsPath)):
-            print "File settings.conf not found"
-            os._exit(-1)
+	settingsPath="settings.conf"
+	if (not os.path.isfile(settingsPath)):
+		print "File settings.conf not found"
+		os._exit(-1)
 
-    f = open(settingsPath)
-    settingsContent = open(settingsPath).readlines()
+	f = open(settingsPath)
+	settingsContent = open(settingsPath).readlines()
 
-    emailAddy = settingsContent[0].rstrip('\n')
-    applicationKey = settingsContent[1].rstrip('\n')
-    machineName = settingsContent[2].rstrip('\n')
-    apiKey = 'yIiEyL50VuMVdp'
+	emailAddy = settingsContent[0].rstrip('\n')
+	applicationKey = settingsContent[1].rstrip('\n')
+	machineName = settingsContent[2].rstrip('\n')
+	apiKey = 'yIiEyL50VuMVdp'
 
-    f.close()
+	f.close()
 
 	apiKey = 'yIiEyL50VuMVdp'	
 	reqURL = 'https://mobileminer.azurewebsites.net/api/MiningStatisticsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey
+	
+	print reqURL
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument("command", default="devs", nargs='?')
