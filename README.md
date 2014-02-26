@@ -3,7 +3,13 @@ CGMinerMobileAdapter
 
 Updated version of Hazado's BFGMobileAdapter fork.
 
-Changes:
+Installation (installs in /opt/CGMinerMobileAdapter, and forces system to run it on startup):
+
+    git clone https://github.com/Axadiw/CGMinerMobileAdapter.git
+    cd CGMinerMobileAdapter
+    ./install.sh
+
+Changes (since BFGMobileAdapter):
 
 - remote commands support (START/STOP/RESTART)
 - removed script freezes

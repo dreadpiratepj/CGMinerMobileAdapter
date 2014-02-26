@@ -28,6 +28,7 @@ screen -X -S MobileMiner quit
 $SCREEN_COMMAND
 
 if ! grep -q "$SCREEN_COMMAND" "/etc/rc.local"; then
+		sed -i -e '$i '$SCREEN_COMMAND' &\n' rc.local
         echo $SCREEN_COMMAND >> $RC_LOCAL_PATH
 fi
 
