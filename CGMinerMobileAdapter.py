@@ -56,11 +56,10 @@ while 1:
 	emailAddy = settingsContent[0].rstrip('\n')
 	applicationKey = settingsContent[1].rstrip('\n')
 	machineName = settingsContent[2].rstrip('\n')
-	apiKey = 'yIiEyL50VuMVdp'
 
 	f.close()
 
-	apiKey = 'yIiEyL50VuMVdp'	
+	apiKey = 'yhErhKxFMCmEkf'	
 	reqURL = 'https://mobileminer.azurewebsites.net/api/MiningStatisticsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey
 	
 	print reqURL
