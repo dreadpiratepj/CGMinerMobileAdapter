@@ -13,7 +13,6 @@ Changes (since BFGMobileAdapter):
 
 - remote commands support (START/STOP/RESTART)
 - removed script freezes
-- 
 
 Tested on BAMT, CGminer and it's forks (vertminer, sgminer).
 
