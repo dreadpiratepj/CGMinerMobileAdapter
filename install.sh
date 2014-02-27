@@ -31,7 +31,7 @@ if ! grep -q "$SCREEN_COMMAND" "/etc/rc.local"; then
 		sed -i -e "\$i $SCREEN_COMMAND" $RC_LOCAL_PATH
 fi
 
-apt-get install python-pip -y
+apt-get install screen python-pip -y
 pip install argparse
 
 
