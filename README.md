@@ -14,6 +14,8 @@ Changes (since BFGMobileAdapter):
 - remote commands support (START/STOP/RESTART)
 - removed script freezes
 
+If you'd like to donate, please use this account: 1MkmUGJtffLYeFrWSgtewGvWeP1MncnVCt
+
 =========
 ORIGINAL README:
 
