@@ -190,4 +190,4 @@ while 1:
 		import traceback
                 logging.warning('GetCommands Generic Exception: ' + traceback.format_exc())
 
-	time.sleep(5)
+	time.sleep(60)
