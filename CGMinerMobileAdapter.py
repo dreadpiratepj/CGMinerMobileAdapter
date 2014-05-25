@@ -23,6 +23,52 @@ import socket
 import urllib
 import urllib2
 
+class CgminerAPI(object):
+    """ Cgminer RPC API wrapper by Thomas Sileo
+		http://thomassileo.com/blog/2013/09/17/playing-with-python-and-cgminer-rpc-api/
+	"""
+    def __init__(self, host='localhost', port=4028):
+        self.data = {}
+        self.host = host
+        self.port = port
+
+    def command(self, command, arg=None):
+        """ Initialize a socket connection,
+        send a command (a json encoded dict) and
+        receive the response (and decode it).
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            sock.connect((self.host, self.port))
+            payload = {"command": command}
+            if arg is not None:
+                # Parameter must be converted to basestring (no int)
+                payload.update({'parameter': unicode(arg)})
+
+            sock.send(json.dumps(payload))
+            received = self._receive(sock)
+        finally:
+            #sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
+        
+        return json.loads(received[:-1])
+
+    def _receive(self, sock, size=4096):
+        msg = ''
+        while 1:
+            chunk = sock.recv(size)
+            if chunk:
+                msg += chunk
+            else:
+                break
+        return msg
+
+    def __getattr__(self, attr):
+        def out(arg=None):
+            return self.command(attr, arg)
+        return out
+
 def start_mining():
 	os.system("mine start")
 
@@ -70,46 +116,50 @@ while 1:
 	parser.add_argument("--port", type=int, default=4028)
 	args = parser.parse_args()
 	
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.settimeout(30)
-	
-	try:
-		s.connect((args.hostname, args.port))
-	except socket.error, e:
-		logging.error(e)
-	
-	try:
-		s.send("{\"command\" : \"%s\", \"parameter\" : \"%s\"}"
-				% (args.command, args.parameter)
-			  )
-	except socket.error, e:
-		logging.error(e)
-	
 	data = []
 	data2 = []
+	pools = []
+	minerName = 'CGMinerMobileAdapter'
+	hashMethod = None
+	
 	print '['+str(datetime.datetime.now()).split('.')[0]+']  Getting Data from CGMiner RPC API using port:'+str(args.port)
+	cgminer = CgminerAPI(args.hostname, args.port)
+
 	try:
-		data = s.recv(32768)
-	except socket.error, e:
-		logging.error(e)
+		data = cgminer.version()
+		minerName = data['VERSION'][0]['Miner']		
+	except KeyError:
+		minerName = data['STATUS'][0]['Description']
+	except Exception:
+		import traceback
+		logging.warning('Generic Exception: ' + traceback.format_exc())
 	
 	try:
-		s.close()
-	except socket.error,e:
-		logging.error(e)
-	
-	if data:
-		data = json.loads(data.replace('\x00', ''))
+		pools = cgminer.pools()
+		
+		data = cgminer.coin()
+		hashMethod = data['COIN'][0]['Hash Method']
+	except Exception:
+		import traceback
+		logging.warning('Generic Exception: ' + traceback.format_exc())
+
+	try:
+		data = cgminer.command(args.command, args.parameter)
 		#print data
-	
-	try:
+		
 		for item in data['DEVS']:
 			device = dict()
 			device[u'MachineName'] = machineName
-			device[u'MinerName'] = u'CGMiner'
-			device[u'CoinSymbol'] = u'LTC'
-			device[u'CoinName'] = u'Litecoin'
-			device[u'Algorithm'] = u'Scrypt'
+			device[u'MinerName'] = minerName
+			if hashMethod == u'scrypt':
+				device[u'CoinSymbol'] = u'LTC'
+				device[u'CoinName'] = u'Litecoin'
+				device[u'Algorithm'] = u'Scrypt'
+			elif hashMethod == u'sha256':
+				device[u'CoinSymbol'] = u'BTC'
+				device[u'CoinName'] = u'Bitcoin'
+				device[u'Algorithm'] = u'SHA-256'
+				
 			if not item.get('Name'):
 				device[u'Kind'] = u'GPU'
 				device[u'FanSpeed'] = item[u'Fan Speed']
@@ -145,11 +195,23 @@ while 1:
 				
 			device[u'Status'] = item[u'Status']
 			device[u'AverageHashrate'] = item[u'MHS av'] * 1000
-			device[u'CurrentHashrate'] = item[u'MHS 5s'] * 1000
+			try:
+				# bfgminer uses 'MHS 20s'
+				# multiply by 1000 to get hashes per second
+				device[u'CurrentHashrate'] = item[u'MHS 20s'] * 1000
+			except KeyError:
+				# cgminer uses 'MHS 5s'
+				# multiply by 1000 to get hashes per second
+				device[u'CurrentHashrate'] = item[u'MHS 5s'] * 1000
+			
 			device[u'AcceptedShares'] = item[u'Accepted']
 			device[u'RejectedShares'] = item[u'Rejected']
 			device[u'HardwareErrors'] = item[u'Hardware Errors']
 			device[u'Utility'] = item[u'Utility']
+			
+			poolIndex = item[u'Last Share Pool']
+			device[u'PoolIndex'] = poolIndex
+			device[u'PoolName'] = pools[u'POOLS'][poolIndex][u'Stratum URL']
 			data2.append(device)
 			#print data2
 		
