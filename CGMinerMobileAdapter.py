@@ -107,7 +107,10 @@ while 1:
 	
 	rootURL= 'https://api.mobileminerapp.com'
 	apiKey = 'yhErhKxFMCmEkf'
+	
 	reqURL = rootURL+'/MiningStatisticsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&apiKey='+apiKey
+	req = urllib2.Request(reqURL)
+	req.add_header('Content-Type', 'application/json')
 	
 	parser = argparse.ArgumentParser()
 	parser.add_argument("command", default="devs", nargs='?')
@@ -117,7 +120,7 @@ while 1:
 	args = parser.parse_args()
 	
 	data = []
-	data2 = []
+	devices = []
 	pools = []
 	minerName = 'CGMinerMobileAdapter'
 	hashMethod = None
@@ -136,7 +139,6 @@ while 1:
 	
 	try:
 		pools = cgminer.pools()
-		
 		data = cgminer.coin()
 		hashMethod = data['COIN'][0]['Hash Method']
 	except Exception:
@@ -144,10 +146,10 @@ while 1:
 		logging.warning('Generic Exception: ' + traceback.format_exc())
 
 	try:
-		data = cgminer.command(args.command, args.parameter)
-		#print data
+		devs = cgminer.command(args.command, args.parameter)
+		#print devs
 		
-		for item in data['DEVS']:
+		for item in devs['DEVS']:
 			device = dict()
 			device[u'MachineName'] = machineName
 			device[u'MinerName'] = minerName
@@ -212,18 +214,16 @@ while 1:
 			poolIndex = item[u'Last Share Pool']
 			device[u'PoolIndex'] = poolIndex
 			device[u'PoolName'] = pools[u'POOLS'][poolIndex][u'Stratum URL']
-			data2.append(device)
-			#print data2
+			devices.append(device)
 		
-		req = urllib2.Request(reqURL)
-		req.add_header('Content-Type', 'application/json')
-	
 	except Exception:
 		import traceback
 		logging.warning('Generic Exception: ' + traceback.format_exc())
 	
 	try:
-		response = urllib2.urlopen(req, json.dumps(data2), 30)
+		#print devices
+		print '['+str(datetime.datetime.now()).split('.')[0]+']  Sending devices to MobileMiner API from '+machineName
+		response = urllib2.urlopen(req, json.dumps(devices), 30)
 	except urllib2.HTTPError, e:
 		logging.warning('HTTPError = ' + str(e.code))
 	except urllib2.URLError, e:
@@ -234,27 +234,58 @@ while 1:
 		import traceback
 		logging.warning('Generic Exception: ' + traceback.format_exc())
 	
-	print '['+str(datetime.datetime.now()).split('.')[0]+']  Sending to MobileMiner API from '+machineName
+	reqURL = rootURL+'/PoolsInput?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&apiKey='+apiKey+'&machineName='+machineName
+	req = urllib2.Request(reqURL)
+	req.add_header('Content-Type', 'application/json')
+	
+	try:
+		poolNames = []
+		for pool in pools[u'POOLS']:
+			poolNames.append(pool[u'URL'])
+		
+		#print poolNames
+		print '['+str(datetime.datetime.now()).split('.')[0]+']  Sending pools to MobileMiner API from '+machineName
+		response = urllib2.urlopen(req, json.dumps(poolNames), 30)
+	except urllib2.HTTPError, e:
+		logging.warning('HTTPError = ' + str(e.code))
+	except urllib2.URLError, e:
+		logging.warning('URLError = ' + str(e.reason))
+	except httplib.HTTPException, e:
+		logging.warning('HTTPException')
+	except Exception:
+		import traceback
+		logging.warning('Generic Exception: ' + traceback.format_exc())
 	
 	getCommandsURL = rootURL+'/RemoteCommands?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey
 	getCommandsReq = urllib2.Request(getCommandsURL)
 	getCommandsReq.add_header('Content-Type', 'application/json')
 	
 	try:
+		print '['+str(datetime.datetime.now()).split('.')[0]+']  Retrieving commands from MobileMiner API for '+machineName
 		getCommandsResponse = urllib2.urlopen(getCommandsReq, None, 30)
 		commands = json.loads(getCommandsResponse.read())
 		#print commands
+		
 		for d in commands:
 			commandText = d['CommandText']
 			#print commandText
-			actions[commandText]()
+			
+			if commandText in ['START', 'STOP', 'RESTART']:
+				actions[commandText]()
+			elif 'SWITCH|' in commandText:
+				poolName = commandText.split("|")[1]
+				poolIndex = poolNames.index(poolName)
+				response = cgminer.command('switchpool', poolIndex)
+				print response
+				
 			removeCommandsURL = 'https://mobileminer.azurewebsites.net/api/RemoteCommands?emailAddress='+emailAddy+'&applicationKey='+applicationKey+'&machineName='+machineName+'&apiKey='+apiKey+'&commandId='+str(d['Id'])
 			removeCommandsReq = urllib2.Request(removeCommandsURL)
 			removeCommandsReq.get_method = lambda: 'DELETE'
 			removeCommandsReq.add_header('Content-Type', 'application/json')
 			urllib2.urlopen(removeCommandsReq, None, 30)
-        except Exception:
-			import traceback
-			logging.warning('GetCommands Generic Exception: ' + traceback.format_exc())
+			
+	except Exception:
+		import traceback
+		logging.warning('GetCommands Generic Exception: ' + traceback.format_exc())
 	
 	time.sleep(60)
